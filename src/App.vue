@@ -6,7 +6,7 @@ import Button from 'primevue/button';
 import { ref } from 'vue';
 
 const phase = ref(1);
-const time = ref(100);
+const time = ref(3500);
 let interval = 0;
 const actionNextPhase = () => {
   phase.value++;
