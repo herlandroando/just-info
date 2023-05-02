@@ -74,11 +74,11 @@ function handleClickedBalloon() {
     });
 
     //play sound pop
-    let audio = new Audio('./assets/pop.wav');
+    let audio = new Audio('/just-info/public/assets/pop.wav');
     audio.play();
 
     //playy another sound
-    audio = new Audio('./assets/hbd.mp3');
+    audio = new Audio('/just-info/public/assets/hbd.mp3');
     //make volume lower and then higher
     audio.volume = 0.1;
     audio.play();
@@ -163,7 +163,7 @@ function handleClickedBalloon() {
 
 <template>
   <div :class="{ 'wrapper': true, 'end': click >= 10 }">
-    <Image class="balloon" src="./assets/balloon.png" width="200" @click="handleClickedBalloon" ref="balloon" />
+    <Image class="balloon" src="/just-info/public/assets/balloon.png" width="200" @click="handleClickedBalloon" ref="balloon" />
     <h3 v-if="phase == 1">Gelap sekali disini...</h3>
     <h3 v-if="phase == 2">Oh, apakah kau baru datang?</h3>
     <h3 v-if="phase == 3">Bisakah kau klik/tekan aku sebanyak mungkin?</h3>
