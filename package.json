@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "particles.js": "^2.0.0",
     "party-js": "^2.2.0",
     "primeicons": "^6.0.1",
     "primevue": "^3.17.0",
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^3.1.0",
+    "sass": "^1.69.4",
     "vite": "^3.1.0"
   }
 }

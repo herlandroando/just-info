@@ -1,194 +1,209 @@
 <script setup>
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue'
-import Button from 'primevue/button';
-import Image from 'primevue/image';
-import { onMounted, ref } from 'vue';
-import party from "party-js";
+import Button from "primevue/button";
+import Game from "./components/Game.vue";
+import { computed, onMounted, ref } from "vue";
+import DynamicDialog from 'primevue/dynamicdialog';
+import InputText from 'primevue/inputtext';
+import { useDialog } from "primevue/usedialog";
+import Galeri from "./components/Galeri.vue";
 
-const phase = ref(1);
-const time = ref(2000);
-const click = ref(0);
-const balloon = ref(null);
-const imgFloatingContainer = ref(null);
-const images = [
-  'https://i.ibb.co/bL6cY3L/Whats-App-Image-2023-05-01-at-18-08-06.jpg',
-  'https://i.ibb.co/D56x1zV/Whats-App-Image-2023-05-01-at-18-08-04777.jpg',
-  'https://i.ibb.co/S34nQXB/1.jpg',
-  'https://i.ibb.co/pb9qQDh/Whats-App-Image-2023-05-01-at-18-08-022.jpg',
-  'https://i.ibb.co/WcYDw0h/Whats-App-Image-2023-05-01-at-18-08-034.jpg',
-  'https://i.ibb.co/W3KxS1K/Whats-App-Image-2023-05-01-at-18-08-0355.jpg',
-  'https://i.ibb.co/v13bbGz/Whats-App-Image-2023-05-01-at-18-08-001.jpg',
-  'https://i.ibb.co/yF4NDMq/Whats-App-Image-2023-05-01-at-18-08-01.jpg',
-  'https://i.ibb.co/0rP2Yd2/Whats-App-Image-2023-05-01-at-18-08-02.jpg',
-  'https://i.ibb.co/w048JzC/Whats-App-Image-2023-05-01-at-18-08-003.jpg',
-  'https://i.ibb.co/QcRBYsL/Whats-App-Image-2023-05-01-at-18-08-04.jpg',
-  'https://i.ibb.co/3MFsk42/Whats-App-Image-2023-05-01-at-18-07-58.jpg',
-  'https://i.ibb.co/GQkf2yp/Whats-App-Image-2023-05-01-at-18-07-59.jpg',
-  'https://i.ibb.co/qdB1rLv/Whats-App-Image-2023-05-01-at-18-07-582.jpg',
-  'https://i.ibb.co/ZBBpdsn/Whats-App-Image-2023-05-01-at-18-08-00.jpg',
-  'https://i.ibb.co/t2SdVLJ/Whats-App-Image-2023-05-01-at-18-07-592.jpg',
-  'https://i.ibb.co/qnMPhH2/Whats-App-Image-2023-05-01-at-18-08-051.jpg',
-  'https://i.ibb.co/GkfznxM/Whats-App-Image-2023-05-01-at-18-08-047.jpg',
-  'https://i.ibb.co/TrDGM86/Whats-App-Image-2023-05-01-at-18-08-0411.jpg',
+const introText = [
+  "",
+  "Kau berpikir ini gelap saja?",
+  "Biar kubantu sedikit...",
+  "Namun sebelum itu...",
+  "Aku ingin tahu kamu siapa?...",
+  "Ok, aku percaya kamu...",
+  "Aku akan membantumu...",
+  "Ciyaattt...",
+  "",
 ]
-let interval = 0
-let soundInterval = 0
+const dialog = useDialog();
 
-//mount function
-onMounted(() => {
+const galleryState = ref(false);
+const gameState = ref('intro');
+const introStep = ref(0);
+const introInterval = ref(null);
+const stateBg = ref(false);
+const stateFlash = ref(false);
+const score = ref(0);
+const name = ref('');
+const recognition = computed(() => {
 
-  interval = setInterval(() => {
-    // time.value -= 1000;
-    if (phase.value >= 3) {
-      console.log('end');
-      time.value = 4000;
-      clearInterval(interval);
-      return;
-    };
-    phase.value++;
-    console.log(phase.value);
-  }, time.value);
-
+  let nl = name.value.toLowerCase();
+  if (nl === 'arini') {
+    return 'Sebentar... Jangan dihapus! aku berusaha mengingatnya...'
+  } else if (['ayu', 'dewi', 'widyaningsih'].includes(nl)) {
+    return 'Hmmm... mohon maaf terlalu banyak yang mengakuinya...'
+  } else if (['ay', 'syng', 'sayang', 'honey'].includes(nl)) {
+    return 'Iya iya... aku juga sayang kamu... namun aku tidak mengenalmu...'
+  } else if (nl === '') {
+    return 'Jawab isian di atas ya...'
+  } else {
+    return 'Aku tidak mengenalmu...'
+  }
 });
 
-function handleClickedBalloon() {
-  if (phase.value < 3) {
+const intro = computed(() => {
+  return gameState.value === 'intro';
+});
+const showFast = computed(() => {
+  return {
+    visibility: stateBg.value ? "visible" : "hidden"
+  }
+});
+const showSlow = computed(() => {
+  return {
+    visibility: stateBg.value ? "hidden" : "visible"
+  }
+});
+// This starter template is using Vue 3 <script setup> SFCs
+// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
+particlesJS.load('particles-js', 'assets/particles.json', function () {
+  console.log('callback - particles.js config loaded');
+});
+particlesJS.load('particles-js2', 'assets/particles_fast.json', function () {
+  console.log('callback - particles.js config loaded');
+});
+
+function onClickGallery(value = null) {
+  if (value === null) {
+    galleryState.value = true;
     return;
   }
-  //make balloon shake
-  balloon.value.$el.classList.add('shake');
-  setTimeout(() => {
-    balloon.value.$el.classList.remove('shake');
-  }, 500);
+  galleryState.value = value;
+  console.log(value, galleryState.value, "APP STATE gallery" );
+}
 
-  click.value++;
-
-  if (click.value >= 10) {
-    party.sparkles(balloon.value.$el, {
-      count: party.variation.range(50, 100),
-      size: party.variation.range(1, 6),
-      gravity: party.variation.range(1, 6),
-      colors: ['#bb0000', '#ffffff']
-    });
-
-    //play sound pop
-    let audio = new Audio('/just-info/public/assets/pop.wav');
-    audio.play();
-
-    //playy another sound
-    audio = new Audio('/just-info/public/assets/hbd.mp3');
-    //make volume lower and then higher
-    audio.volume = 0.1;
-    audio.play();
-
-    soundInterval = setInterval(() => {
-      if (audio.volume >= 1) {
-        clearInterval(soundInterval);
-        return;
-      }
-      audio.volume += 0.1;
-    }, 100)
-
-    setInterval(() => {
-      party.confetti(document.body, {
-        count: party.variation.range(10, 20),
-        size: party.variation.range(1, 6),
-        gravity: party.variation.range(1, 6),
-        colors: ['#bb0000', '#ffffff']
-      });
-    }, 1000);
-
-    balloon.value.$el.classList.add('disappear');
-    balloon.value.$el.classList.remove('shake');
+function onClick() {
+  if (gameState.value === 'main-menu') {
+    stateFlash.value = true;
     setTimeout(() => {
-      balloon.value.$el.classList.remove('disappear');
-      //delete balloon
-      balloon.value.$el.remove();
-      balloon.value = null;
-    }, 500);
-    phase.value++;
-    interval = setInterval(() => {
-      // time.value -= 1000;
-      if (phase.value >= 8) {
-        console.log('end');
-        clearInterval(interval);
-        return;
-      };
-      phase.value++;
-      console.log(phase.value);
-    }, time.value);
-
-    //make random image fall from top every 2s and dissapear
-    setInterval(() => {
-      let randomImage = images[Math.floor(Math.random() * images.length)];
-      // dont make it outside the screen
-      let randomX = Math.floor(Math.random() * (window.innerWidth - 100));
-      let randomSize = 100 + Math.floor(Math.random() * 100);
-      let randomRotate = Math.floor(Math.random() * 360);
-      let randomDuration = Math.floor(Math.random() * 10);
-      randomDuration = randomDuration < 3 ? 3 : randomDuration;
-      // let randomDelay = Math.floor(Math.random() * 10);
-      let randomTiming = ['ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear']
-      let randomDirection = ['normal', 'reverse', 'alternate', 'alternate-reverse']
-      let randomFill = ['forwards', 'backwards', 'both']
-      // let randomPlay = ['paused', 'running'][Math.floor(Math.random() * 2)];
-
-      randomTiming = randomTiming[Math.floor(Math.random() * randomTiming.length)];
-      randomDirection = randomDirection[Math.floor(Math.random() * randomDirection.length)];
-      randomFill = randomFill[Math.floor(Math.random() * randomFill.length)];
-
-      let image = document.createElement('img');
-      image.src = randomImage;
-      image.style.position = 'absolute';
-      image.style.top = '0';
-      image.style.left = `${randomX}px`;
-      image.style.width = `${randomSize}px`;
-      image.style.transform = `rotate(${randomRotate}deg)`;
-      // image.style.opacity = `${randomOpacity}`;
-      image.style.zIndex = '1';
-      image.style.pointerEvents = 'none';
-      image.style.animation = `fall ${randomDuration}s ${randomTiming} ${randomDirection} ${randomFill}`;
-      imgFloatingContainer.value.appendChild(image);
-
-      setTimeout(() => {
-        image.remove();
-      }, randomDuration * 1000);
-    }, 500);
+      stateBg.value = true;
+    }, 400);
+    setTimeout(() => {
+      gameState.value = 'game';
+      stateFlash.value = false;
+    }, 1000);
+  }
+  else {
+    localStorage.setItem('score', score.value);
+    localStorage.setItem('lastLogin', new Date().getTime());
+    stateFlash.value = true;
+    setTimeout(() => {
+      stateBg.value = false;
+    }, 400);
+    setTimeout(() => {
+      gameState.value = 'main-menu';
+      stateFlash.value = false;
+    }, 1000);
   }
 }
+
+function onScore(type) {
+  if (type === 'gold') {
+    score.value += 10;
+  }
+  else {
+    score.value += 1;
+  }
+}
+
+onMounted(() => {
+  localStorage.getItem('score') ? score.value = parseInt(localStorage.getItem('score')) : score.value = 0;
+  introInterval.value = setInterval(() => {
+    if (introStep.value === 2) {
+      let lastLogin = localStorage.getItem('lastLogin');
+      console.log(lastLogin, new Date().getTime(), new Date().getTime() - lastLogin, 1000 * 60 * 30);
+
+      // if last login is less than 30 minutes ago then go to game else need to relogin
+      if (lastLogin && new Date().getTime() - lastLogin < 1000 * 60 * 30) {
+        introStep.value = 7;
+        return;
+      }
+      introStep.value = 3;
+      return;
+    }
+    if (introStep.value === 4) {
+      if (name.value.toLowerCase() === 'arini') {
+        introStep.value = 5;
+        localStorage.setItem('lastLogin', new Date().getTime());
+        return;
+      }
+      return;
+    }
+
+    introStep.value++;
+    if (introStep.value > introText.length - 1) {
+      gameState.value = 'main-menu';
+      clearInterval(introInterval.value);
+    }
+  }, 300);
+});
 
 </script>
 
 <template>
-  <div :class="{ 'wrapper': true, 'end': click >= 10 }">
-    <Image class="balloon" src="/just-info/public/assets/balloon.png" width="200" @click="handleClickedBalloon" ref="balloon" />
-    <h3 v-if="phase == 1">Gelap sekali disini...</h3>
-    <h3 v-if="phase == 2">Oh, apakah kau baru datang?</h3>
-    <h3 v-if="phase == 3">Bisakah kau klik/tekan aku sebanyak mungkin?</h3>
-    <h3 v-if="phase == 3">Kau sudah menekan aku sebanyak {{ click }} kali</h3>
-    <h1 v-if="phase == 4">Selamat Ulang Tahun</h1>
-    <h3 style="font-size: x-large;" v-if="phase == 4">untuk</h3>
-    <h2 style="text-align: center;font-size: xx-large; font-weight: bold; line-height: 1.5;" v-if="phase == 4">Ayah saya,
-      Heru Sukoco</h2>
-    <h3 v-if="phase == 5">Semoga panjang umur, sehat selalu, dan selalu diberikan kemudahan dalam segala hal</h3>
-    <h3 v-if="phase == 6">Terima kasih sudah menjadi ayah yang baik</h3>
-    <h3 style="font-size: xx-large; line-height: 1.5;" v-if="phase == 7">Jangan lupa ke dokter ya pak untuk cek kesehatan
-    </h3>
-    <h3 v-if="phase == 8">Sekali lagi, selamat ulang tahun pak!</h3>
+  <div class="wrapper">
+    <div id="particles-js" class="particle" :style="!intro ? showSlow : { opacity: '0' }"></div>
+    <div id="particles-js2" class="particle" :style="!intro ? showFast : { visibility: 'hidden' }"></div>
+    <div class="main-container">
+      <div v-if="!intro" class="play-container">
+        <div v-if="gameState === 'main-menu'" class="main-menu">
+          <Button style="width: 100%;" label="Mulai Pencarian!" :disabled="stateFlash" severity="success"
+            @click="onClick" />
+          <Button style="width: 100%; margin-top: 1rem;" label="Galeri" :disabled="stateFlash" severity="info"
+            @click="onClickGallery(null)" />
+          <br>
+          <b>Gambar yang kamu kumpulkan : {{ score }}</b>
+          <small class="">Kami merekomendasikan untuk main di hp dengan posisi tegak</small>
+        </div>
+        <Game :score="score" v-else @click:back-button="onClick" @click:item="onScore" />
+      </div>
+      <div v-else="intro" class="intro" style="display: flex; flex-direction: column; justify-content: center;">
+        <p class="text-white text-center text-2xl font-bold">{{ introText[introStep] }}</p>
+        <InputText v-if="introStep === 4" class="text-center" placeholder="Masukkan nama kamu" v-model="name" />
+
+        <small v-if="introStep === 4" class="text-white" :class="{ correct: name.toLowerCase() === 'arini' }"
+          style="margin-top: 1rem; text-align: center;">{{ recognition }}</small>
+      </div>
+    </div>
+    <div :class="{ 'flash-container': true, 'active': stateFlash }"></div>
   </div>
-  <div class="img-floating" ref="imgFloatingContainer">
+  <div>
+    <DynamicDialog></DynamicDialog>
+  </div>
+  <div style="position: fixed; top: 0; left: 0; z-index: 1000;">
+    <Galeri :score="score" :state="galleryState" @update:state="onClickGallery" />
+
   </div>
 </template>
 
 <style>
+.correct {
+  color: #00ff00;
+}
+
 .img-floating {
   position: fixed;
   z-index: 1;
   width: 100vw;
   top: 0;
   left: 0;
+}
+
+.play-container .main-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+  /* background-color: #242424; */
+  transition: all 0.3s ease;
+  padding: 30px;
 }
 
 .wrapper {
@@ -201,107 +216,54 @@ function handleClickedBalloon() {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #242424;
+  background-color: #000;
+  /* background-color: #242424; */
   transition: all 0.3s ease;
-  padding: 30px;
+  overflow: hidden;
 }
 
-.small-img {
-  width: 100px;
-  height: auto;
-  border-radius: 50%;
-  margin: 0 auto;
-  display: block;
-  object-fit: cover;
-  object-position: center;
-  border: 2px solid #fff;
+.main-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  /* background-color: #242424; */
+  transition: all 0.3s ease;
 }
 
-.wrapper.end {
+.particle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 50% 50%;
+  transition: all 0.6s ease;
+  opacity: 1;
+}
+
+.flash-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  transition: all 0.6s ease;
   background-color: #fff;
-  color: #000;
+  opacity: 0;
+  z-index: 1;
 }
 
-.text-error {
-  color: #ff0000;
-}
-
-@media screen and (max-width: 768px) {
-  .wrapper {
-    gap: 0.3rem;
-  }
-}
-
-.balloon {
-  animation: balloon 3s ease-in-out infinite;
-}
-
-.balloon.shake {
-  animation: shake 0.5s ease-in-out infinite;
-}
-
-.balloon.disappear {
-  animation: disappear 0.5s ease-in-out;
-}
-
-@keyframes fall {
-  0% {
-    transform: translateY(-100vh);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateY(100vh);
-    opacity: 0;
-  }
-}
-
-@keyframes disappear {
-  0% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(0.5);
-  }
-
-  100% {
-    opacity: 0;
-    transform: scale(0);
-  }
-}
-
-@keyframes shake {
-  0% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-30px);
-  }
-
-  50% {
-    transform: translateX(30px);
-  }
-
-  100% {
-    transform: translateX(0);
-  }
-}
-
-@keyframes balloon {
-  0% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-10px);
-  }
-
-  100% {
-    transform: translateY(0);
-  }
+.flash-container.active {
+  opacity: 1;
+  z-index: 3;
 }
 </style>
