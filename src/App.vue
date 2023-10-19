@@ -138,7 +138,7 @@ onMounted(() => {
       gameState.value = 'main-menu';
       clearInterval(introInterval.value);
     }
-  }, 300);
+  }, 1500);
 });
 
 </script>
